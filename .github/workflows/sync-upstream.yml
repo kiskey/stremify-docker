@@ -1,8 +1,6 @@
 name: Sync Upstream Repository
 
 on:
-permissions:
-contents: write
   schedule:
     - cron: "0 8 * * *"  # Runs daily at 8:00 AM UTC
   workflow_dispatch:  # Allows manual trigger
