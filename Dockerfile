@@ -1,15 +1,18 @@
-# Use an official Node.js runtime as the base image
+# Use the official Node.js 20 slim runtime as the base image
 FROM node:slim
 
 # Install pnpm globally
 RUN npm install -g pnpm
 
+# Install git for cloning the repository
+RUN apt-get update && apt-get install -y git \
+    && rm -rf /var/lib/apt/lists/*  # Clean up the apt cache
+
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
 # Clone the Stremify repository
-RUN apk add --no-cache git \
-    && git clone https://github.com/stremify/stremify.git . 
+RUN git clone https://github.com/stremify/stremify.git .
 
 # Install required packages using pnpm
 RUN pnpm install
