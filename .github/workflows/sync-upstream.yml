@@ -2,8 +2,7 @@ name: Sync Upstream Repository
 
 on:
   schedule:
-    # Run every day at midnight UTC
-    - cron: "0 7 * * *"
+    - cron: "0 8 * * *"  # Runs daily at 8:00 AM UTC
   workflow_dispatch:  # Allows manual trigger
 
 jobs:
@@ -11,29 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout your repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Git
       - name: Set up Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      # Add upstream remote and fetch changes
       - name: Add upstream and fetch
         run: |
           git remote add upstream https://github.com/stremify/stremify.git
           git fetch upstream
 
-      # Merge upstream changes into the current branch (main)
       - name: Merge upstream into main
         run: |
           git checkout main
           git merge upstream/main || echo "No changes to merge"
 
-      # Push the changes to your repository (if any new commits were merged)
       - name: Push changes
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
+          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/kiskey/stremify-docker.git
           git push origin main || echo "No changes to push"
