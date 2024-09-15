@@ -17,23 +17,24 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Add upstream and fetch
         run: |
-          git remote add upstream https://github.com/stremify/stremify.git
+          git remote add upstream https://github.com/stremify/stremify.git || echo "Upstream remote already exists"
           git fetch upstream
 
       - name: Merge upstream into main
         run: |
           git checkout main
-          git merge upstream/main || echo "No changes to merge"
+          git merge --no-commit --no-ff upstream/main || echo "No changes to merge or conflicts detected"
+          git commit -m "Merged upstream changes" || echo "No merge commit necessary"
 
       - name: Check repository URL
         run: git remote -v
 
       - name: Push changes
         env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/kiskey/stremify-docker.git
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/kiskey/stremify-docker.git
           git push origin main || echo "No changes to push"
