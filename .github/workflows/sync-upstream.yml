@@ -28,6 +28,11 @@ jobs:
           git checkout main
           git merge upstream/main || echo "No changes to merge"
 
+      - name: Debug Info
+        run: |
+          echo "Repo URL: $(git remote get-url origin)"
+          echo "Token Permissions: $(curl -sH 'Authorization: token ${{ secrets.PAT_TOKEN }}' https://api.github.com/user/repos)"
+
       - name: Push changes
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
