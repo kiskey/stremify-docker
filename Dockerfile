@@ -29,6 +29,6 @@ EXPOSE 3000
 COPY start.sh /usr/src/app/start.sh
 RUN chmod +x /usr/src/app/start.sh
 
-
+ENTRYPOINT ["/usr/src/app/start.sh"]
 # Command to run the startup script
-CMD ["/usr/src/app/start.sh"]
+#CMD ["/usr/src/app/start.sh"]
