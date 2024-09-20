@@ -2,7 +2,7 @@
 FROM node:slim AS builder
 
 # Install pnpm globally
-RUN npm install -g pnpm
+RUN npm install -g pnpm@latest
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -31,7 +31,7 @@ COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 
 # Install only production dependencies
-RUN npm install -g pnpm && pnpm install --prod
+RUN npm install -g pnpm@latest && pnpm install --prod
 
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
