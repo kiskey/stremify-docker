@@ -6,4 +6,4 @@ if [ -S /tmp/nitro/worker-19-1.sock ]; then
 fi
 
 # Start the application
-exec node /usr/src/app/.output/server/index.mjs
+exec pnpm run dev
