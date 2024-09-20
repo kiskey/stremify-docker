@@ -21,10 +21,6 @@ RUN pnpm run build
 
 RUN pnpm prune --prod
 
-# Copy the health check script
-COPY healthcheck.js /usr/src/app/healthcheck.js
-
-RUN chmod +x /usr/src/app/healthcheck.js
 
 # Expose the port the application uses
 EXPOSE 3000
@@ -33,8 +29,6 @@ EXPOSE 3000
 COPY start.sh /usr/src/app/start.sh
 RUN chmod +x /usr/src/app/start.sh
 
-# Health check to ensure the application is running
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD node /usr/src/app/healthcheck.js
 
 # Command to run the startup script
 CMD ["/usr/src/app/start.sh"]
