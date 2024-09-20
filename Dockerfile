@@ -24,6 +24,8 @@ RUN pnpm prune --prod
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
 
+RUN chmod +x /usr/src/app/healthcheck.js
+
 # Expose the port the application uses
 EXPOSE 3000
 
