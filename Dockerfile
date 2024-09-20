@@ -5,7 +5,7 @@ FROM node:slim AS builder
 RUN npm install -g pnpm@latest
 
 # Set the working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy package.json and pnpm-lock.yaml (if available)
 COPY package.json pnpm-lock.yaml ./
@@ -23,12 +23,13 @@ RUN pnpm run build
 FROM node:slim
 
 # Set the working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy only the necessary files from the builder stage
-COPY --from=builder /usr/src/app/.output /usr/src/app/.output
-COPY --from=builder /usr/src/app/package.json ./
-COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm@latest
+RUN pnpm install --prod  # Install only production dependencies
+COPY --from=builder /app/dist ./dist
 
 # Install pnpm globally in the production stage
 RUN npm install -g pnpm@latest  
