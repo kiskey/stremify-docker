@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y git \
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
+COPY . /usr/src/app/
+
 # Clone the Stremify repository
 #RUN git clone https://github.com/kiskey/stremify-docker.git
 
