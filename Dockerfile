@@ -5,7 +5,7 @@ FROM node:slim AS builder
 RUN npm install -g pnpm@latest
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package.json and pnpm-lock.yaml (if available)
 COPY package.json pnpm-lock.yaml ./
@@ -19,24 +19,7 @@ COPY . .
 # Build the application
 RUN pnpm run build 
 
-# Stage 2: Production
-FROM node:slim
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy only the necessary files from the builder stage
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm@latest
-RUN pnpm install --prod  # Install only production dependencies
-COPY --from=builder /app/dist ./dist
-
-# Install pnpm globally in the production stage
-RUN npm install -g pnpm@latest  
-
-# Install only production dependencies
-RUN pnpm install --prod
-
+RUN pnpm prune --prod
 
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
