@@ -34,7 +34,7 @@ COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 RUN npm install -g pnpm@latest  
 
 # Install only production dependencies
-RUN pnpm install 
+RUN pnpm install --prod
 
 
 # Copy the health check script
