@@ -5,7 +5,7 @@ FROM node:slim
 RUN npm install -g pnpm
 
 # Install git for cloning the repository
-RUN apt-get update && apt-get install -y git \
+RUN apt-get update && apt-get install -y curl \
     && rm -rf /var/lib/apt/lists/*  # Clean up the apt cache
 
 # Set the working directory inside the container
