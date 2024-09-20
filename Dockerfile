@@ -34,10 +34,8 @@ COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 RUN npm install -g pnpm@latest  
 
 # Install only production dependencies
-RUN pnpm install --prod --ignore-scripts
+RUN pnpm install 
 
-# Copy the nitro binary from the build stage to the production stage
-COPY --from=build /usr/local/bin/nitro /usr/local/bin/nitro
 
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
