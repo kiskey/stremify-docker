@@ -17,7 +17,7 @@ RUN pnpm install
 COPY . .
 
 # Build the application
-RUN pnpm run build
+RUN pnpm run build 
 
 # Stage 2: Production
 FROM node:slim
@@ -31,10 +31,10 @@ COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 
 # Install pnpm globally in the production stage
-RUN npm install -g pnpm@latest
+RUN npm install -g pnpm@latest  
 
 # Install only production dependencies
-RUN pnpm install --prod
+RUN pnpm install --prod --ignore-scripts
 
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
