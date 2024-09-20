@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y git \
 WORKDIR /usr/src/app
 
 # Clone the Stremify repository
-RUN git clone https://github.com/kiskey/stremify-docker.git
+#RUN git clone https://github.com/kiskey/stremify-docker.git
 
 # Install required packages using pnpm
 RUN pnpm install
