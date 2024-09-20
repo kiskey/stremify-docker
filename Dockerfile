@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 # Copy package.json and pnpm-lock.yaml (if available)
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies)
 RUN pnpm install
 
 # Copy the rest of the application code
@@ -30,8 +30,11 @@ COPY --from=builder /usr/src/app/.output /usr/src/app/.output
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 
+# Install pnpm globally in the production stage
+RUN npm install -g pnpm@latest
+
 # Install only production dependencies
-RUN npm install -g pnpm@latest && pnpm install --prod
+RUN pnpm install --prod
 
 # Copy the health check script
 COPY healthcheck.js /usr/src/app/healthcheck.js
