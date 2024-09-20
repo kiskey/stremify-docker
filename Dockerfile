@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y git \
 WORKDIR /usr/src/app
 
 # Clone the Stremify repository
-RUN git clone https://github.com/stremify/stremify.git .
+RUN git clone https://github.com/kiskey/stremify-docker.git
 
 # Install required packages using pnpm
 RUN pnpm install
@@ -20,8 +20,15 @@ RUN pnpm install
 # Copy environmental variables file if needed
 # COPY .env .env  # Uncomment if you have a .env file for configuration
 
+# Add a startup script to clean up the socket file and start the application
+COPY start.sh /usr/src/app/start.sh
+RUN chmod +x /usr/src/app/start.sh
+
 # Expose the port the application uses
 EXPOSE 3000
 
-# Command to run the application in dev mode
-CMD ["pnpm", "run", "dev"]
+# Health check to ensure the application is running
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:3000/ || exit 1
+
+# Command to run the startup script
+CMD ["/usr/src/app/start.sh"]
