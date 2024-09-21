@@ -33,8 +33,17 @@ COPY --from=builder /usr/src/app/.output ./.output
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Make the entrypoint script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose the port the application uses
 EXPOSE 3000
 
-# Start the application directly without additional builds
+# Set the entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Start the application directly
 CMD ["node", ".output/server/index.mjs"]
