@@ -1,4 +1,4 @@
-# Stage 1: Build Stage
+# Stage 1: Build
 FROM node:slim AS builder
 
 # Install pnpm globally
@@ -16,27 +16,25 @@ RUN pnpm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the application (this will run vite and any other build tools)
+# Build the application
 RUN pnpm run build
 
-# Prune devDependencies to leave only production dependencies
+# Prune unnecessary dependencies
 RUN pnpm prune --prod
 
-# Stage 2: Production Stage
-FROM node:slim AS production
+# Stage 2: Final production image
+FROM node:slim
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy the built application from the builder stage
-COPY --from=builder /usr/src/app ./
+# Copy built files from the builder stage
+COPY --from=builder /usr/src/app/.output ./.output
+COPY --from=builder /usr/src/app/package.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
 
-# Ensure the startup script is executable
-COPY start.sh /usr/src/app/start.sh
-RUN chmod +x /usr/src/app/start.sh
-
-# Expose the application port
+# Expose the port the application uses
 EXPOSE 3000
 
-# Run the startup script
-ENTRYPOINT ["/usr/src/app/start.sh"]
+# Start the application directly without additional builds
+CMD ["node", ".output/server/index.mjs"]
