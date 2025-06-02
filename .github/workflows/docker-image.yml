@@ -13,18 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # --- CORRECTED STEP: Setup Node.js and pnpm ---
-      - name: Setup Node.js and pnpm
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20' # Match your Dockerfile's Node version
-          pnpm-version: '7.33.5' # <--- ADD THIS LINE: Explicitly install pnpm
-          cache: 'pnpm'
+          cache: 'pnpm' # This sets up caching for pnpm, but doesn't install pnpm itself
+
+      # --- NEW STEP: Manually install pnpm globally ---
+      - name: Install pnpm globally
+        run: |
+          npm install -g pnpm@7.33.5 # Ensure this matches the version in your package.json / Dockerfile
+        # No 'cache: pnpm' here, as actions/setup-node already handles it.
 
       - name: Regenerate pnpm-lock.yaml (if config mismatch)
         run: |
           echo "Checking pnpm lockfile configuration..."
-          # Attempt a frozen install first to see if it fails due to config mismatch
           if ! pnpm install --frozen-lockfile; then
             echo "pnpm lockfile configuration mismatch detected. Regenerating lockfile..."
             pnpm install --no-frozen-lockfile
@@ -35,7 +38,7 @@ jobs:
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
               git add pnpm-lock.yaml
-              git commit -m "chore(pnpm): Auto-regenerate pnpm-lock.yaml for CI consistency [skip ci]" # Added [skip ci] to prevent re-triggering this workflow on push
+              git commit -m "chore(pnpm): Auto-regenerate pnpm-lock.yaml for CI consistency [skip ci]"
               git push origin main
             fi
           fi
