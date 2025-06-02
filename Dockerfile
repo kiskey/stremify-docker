@@ -1,6 +1,5 @@
-# Dockerfile
 # Stage 1: Build
-FROM node:20-alpine AS builder # Using alpine for smaller image
+FROM node:20-alpine AS builder
 
 # Install pnpm globally (using the version from your lockfile for consistency)
 RUN npm install -g pnpm@7.33.5
@@ -12,7 +11,6 @@ WORKDIR /usr/src/app
 COPY package.json pnpm-lock.yaml ./
 
 # Install all dependencies (including devDependencies)
-# --frozen-lockfile is important here to ensure reproducible builds from the lockfile
 RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application code
