@@ -1,17 +1,22 @@
+# .github/workflows/docker-image.yml
 name: Build and Push Docker Image
 
 on:
-#  push:
-#    branches:
-#      - main
-  workflow_dispatch:  # Allows manual trigger
+  # IMPORTANT: Remove or comment out the 'push' trigger if you only want this to run
+  # when the sync workflow triggers it, and not on every direct push to main.
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch: # Keep this for manual triggers from the GitHub UI
+  repository_dispatch: # NEW TRIGGER: This listens for custom events
+    types: [upstream-synced-and-merged] # This must match the 'event-type' from the sync workflow
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the current repository
+      # Checkout the current repository (this will be the state AFTER the sync-upstream push)
       - name: Checkout repository
         uses: actions/checkout@v3
 
