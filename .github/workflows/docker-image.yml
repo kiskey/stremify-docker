@@ -13,21 +13,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: '20' # Match your Dockerfile's Node version
-          cache: 'pnpm' # This sets up caching for pnpm, but doesn't install pnpm itself
+          # Remove 'cache: pnpm' here, as we'll handle pnpm installation and caching explicitly
+          # It seems the 'cache: pnpm' input might not reliably install pnpm itself,
+          # but rather just configure caching for *when* pnpm is later used.
 
-      # --- NEW STEP: Manually install pnpm globally ---
-      - name: Install pnpm globally
+      # --- CRITICAL NEW STEP: Explicitly install pnpm and ensure it's in PATH ---
+      - name: Install pnpm globally and ensure PATH
         run: |
-          npm install -g pnpm@7.33.5 # Ensure this matches the version in your package.json / Dockerfile
-        # No 'cache: pnpm' here, as actions/setup-node already handles it.
+          npm install -g pnpm@7.33.5
+          echo "Verifying pnpm installation..."
+          pnpm --version
+          echo "PATH: $PATH" # Debugging: Print PATH to see where pnpm should be
+        # Add a custom cache for pnpm global installations if you want to optimize
+        # This will cache the globally installed pnpm, not your project's node_modules
+      - name: Cache pnpm global installation
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store # Adjust if pnpm global store path is different
+          key: ${{ runner.os }}-pnpm-global-${{ hashFiles('package.json') }} # Key based on OS and package.json to bust cache if needed
+          restore-keys: |
+            ${{ runner.os }}-pnpm-global-
 
       - name: Regenerate pnpm-lock.yaml (if config mismatch)
         run: |
           echo "Checking pnpm lockfile configuration..."
+          # This command now *should* find pnpm
           if ! pnpm install --frozen-lockfile; then
             echo "pnpm lockfile configuration mismatch detected. Regenerating lockfile..."
             pnpm install --no-frozen-lockfile
