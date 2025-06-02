@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Final production image
-FROM node:20-alpine # Using alpine for smaller image
+FROM node:20-alpine
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
