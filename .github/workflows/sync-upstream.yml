@@ -35,18 +35,18 @@ jobs:
           # Check if upstream/main is ahead of main
           if git diff --quiet main upstream/main; then
             echo "No new changes detected in upstream/main. Main is already up-to-date or ahead."
-            echo "merged=false" >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
+            echo 'merged=false' >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
           else
             echo "New changes detected in upstream/main. Merging..."
             # Attempt to merge. --no-ff ensures a merge commit, even for fast-forwards.
             git merge --no-ff upstream/main
             echo "Merge completed."
-            echo "merged=true" >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
+            echo 'merged=true' >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
           fi
 
       - name: Push changes to fork
-        # Only run this step if the 'merged' output from 'merge_check' was 'true'
-        if steps.merge_check.outputs.merged == 'true'
+        # THE FIX IS HERE: The 'if' condition is now correctly indented at the same level as 'name', 'env', 'run'
+        if: steps.merge_check.outputs.merged == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
