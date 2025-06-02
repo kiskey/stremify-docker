@@ -13,8 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          # Fetch all history for all branches and tags
-          fetch-depth: 0
+          fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Set up Git
         run: |
@@ -30,25 +29,23 @@ jobs:
           git fetch upstream
 
       - name: Check for changes and merge
-        id: merge_check
+        id: merge_check # Assign an ID to this step to reference its outputs
         run: |
           git checkout main
           # Check if upstream/main is ahead of main
           if git diff --quiet main upstream/main; then
             echo "No new changes detected in upstream/main. Main is already up-to-date or ahead."
-            echo "merged=false" >> $GITHUB_OUTPUT
+            echo "merged=false" >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
           else
             echo "New changes detected in upstream/main. Merging..."
             # Attempt to merge. --no-ff ensures a merge commit, even for fast-forwards.
-            # This is generally preferred for clarity in history for sync actions.
-            # If there are conflicts, this step will fail, and the workflow will stop.
             git merge --no-ff upstream/main
             echo "Merge completed."
-            echo "merged=true" >> $GITHUB_OUTPUT
+            echo "merged=true" >> "$GITHUB_OUTPUT" # Use $GITHUB_OUTPUT for setting outputs
           fi
 
       - name: Push changes to fork
-        # Only run this step if changes were actually merged
+        # Only run this step if the 'merged' output from 'merge_check' was 'true'
         if steps.merge_check.outputs.merged == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
