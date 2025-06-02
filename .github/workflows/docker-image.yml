@@ -1,36 +1,66 @@
-# .github/workflows/docker-image.yml
 name: Build and Push Docker Image
 
 on:
-  # IMPORTANT: Remove or comment out the 'push' trigger if you only want this to run
-  # when the sync workflow triggers it, and not on every direct push to main.
-  # push:
-  #   branches:
-  #     - main
-  workflow_dispatch: # Keep this for manual triggers from the GitHub UI
-  repository_dispatch: # NEW TRIGGER: This listens for custom events
-    types: [upstream-synced-and-merged] # This must match the 'event-type' from the sync workflow
+  workflow_dispatch:
+  repository_dispatch:
+    types: [upstream-synced-and-merged]
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the current repository (this will be the state AFTER the sync-upstream push)
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Log in to Docker Hub
+      # --- NEW STEP: Regenerate pnpm-lock.yaml if necessary ---
+      - name: Setup Node.js and pnpm (consistent version)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Match your Dockerfile's Node version
+          cache: 'pnpm'
+
+      - name: Regenerate pnpm-lock.yaml (if config mismatch)
+        run: |
+          echo "Checking pnpm lockfile configuration..."
+          # Attempt a frozen install first to see if it fails due to config mismatch
+          # If it fails, regenerate the lockfile
+          if ! pnpm install --frozen-lockfile; then
+            echo "pnpm lockfile configuration mismatch detected. Regenerating lockfile..."
+            pnpm install --no-frozen-lockfile
+            # Only commit if there are changes
+            if git diff --exit-code pnpm-lock.yaml; then
+              echo "No changes to pnpm-lock.yaml after regeneration."
+            else
+              echo "pnpm-lock.yaml updated. Committing changes..."
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add pnpm-lock.yaml
+              git commit -m "chore(pnpm): Auto-regenerate pnpm-lock.yaml for CI consistency"
+              # Push the updated lockfile. This might trigger another workflow run,
+              # but it's a necessary step to keep the lockfile accurate.
+              git push origin main
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Default token has push permissions
+
+      # --- Existing Docker build steps follow ---
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build the Docker image
-      - name: Build the Docker image
-        run: docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/stremify-app:latest .
-
-      # Push the Docker image to Docker Hub
-      - name: Push the Docker image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stremify-app:latest
+      - name: Build and Push Docker image
+        # Use Docker Build Action for better integration and caching
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/stremify-app:latest
+          cache-from: type=gha # Use GitHub Actions cache for Docker layers
+          cache-to: type=gha,mode=max
+          # Add build-args if your Dockerfile uses them
+          # build-args: |
+          #   NODE_VERSION=20
