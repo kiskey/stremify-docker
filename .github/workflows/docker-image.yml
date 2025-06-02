@@ -16,32 +16,27 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Match your Dockerfile's Node version
-          # Remove 'cache: pnpm' here, as we'll handle pnpm installation and caching explicitly
-          # It seems the 'cache: pnpm' input might not reliably install pnpm itself,
-          # but rather just configure caching for *when* pnpm is later used.
+          node-version: '20'
+          # No 'cache: pnpm' here
 
-      # --- CRITICAL NEW STEP: Explicitly install pnpm and ensure it's in PATH ---
       - name: Install pnpm globally and ensure PATH
         run: |
           npm install -g pnpm@7.33.5
           echo "Verifying pnpm installation..."
           pnpm --version
-          echo "PATH: $PATH" # Debugging: Print PATH to see where pnpm should be
-        # Add a custom cache for pnpm global installations if you want to optimize
-        # This will cache the globally installed pnpm, not your project's node_modules
+          echo "PATH: $PATH"
+
       - name: Cache pnpm global installation
         uses: actions/cache@v4
         with:
-          path: ~/.pnpm-store # Adjust if pnpm global store path is different
-          key: ${{ runner.os }}-pnpm-global-${{ hashFiles('package.json') }} # Key based on OS and package.json to bust cache if needed
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-global-${{ hashFiles('package.json') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-global-
 
       - name: Regenerate pnpm-lock.yaml (if config mismatch)
         run: |
           echo "Checking pnpm lockfile configuration..."
-          # This command now *should* find pnpm
           if ! pnpm install --frozen-lockfile; then
             echo "pnpm lockfile configuration mismatch detected. Regenerating lockfile..."
             pnpm install --no-frozen-lockfile
@@ -65,11 +60,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # --- NEW STEP: Set up Docker Buildx ---
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and Push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stremify-app:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Specify the builder (important for multi-platform builds and advanced caching)
+          # 'default' is the name of the builder created by setup-buildx-action
+          builder: default
+          cache-from: type=gha,scope=docker-build-${{ github.sha }} # Recommended for cache from
+          cache-to: type=gha,mode=max,scope=docker-build-${{ github.sha }} # Recommended for cache to
