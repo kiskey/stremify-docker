@@ -55,13 +55,10 @@ jobs:
           git push origin main
           echo "Changes pushed to your fork."
 
-      ---
-
-      # NEW STEP: Trigger the Docker Build Workflow if merge occurred
       - name: Dispatch Docker Build Workflow
         if: steps.merge_check.outputs.merged == 'true' # Only dispatch if a merge actually happened
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT_FOR_WORKFLOW_DISPATCH }} # This MUST be a PAT with 'workflow' scope. See instructions below.
+          token: ${{ secrets.PAT_FOR_WORKFLOW_DISPATCH }} # This MUST be a PAT with 'workflow' scope.
           event-type: upstream-synced-and-merged # This is the custom event name your build workflow will listen for
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}' # Optional: Pass some context
